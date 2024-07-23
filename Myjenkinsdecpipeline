@@ -1,6 +1,8 @@
 pipeline{
   agent any  
-  tools {'maven3.9.7'    
+   tools {
+      maven 'maven3.9.7'
+   }    
   stage('1.clonecode'){
     git "https://github.com/lovelyleti20/maven-web-application"
   }
