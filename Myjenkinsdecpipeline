@@ -1,5 +1,6 @@
-node{
-  def mavenHome = tool name: 'maven3.9.7'    
+pipeline{
+  agent any  
+  tools {'maven3.9.7'    
   stage('1.clonecode'){
     git "https://github.com/lovelyleti20/maven-web-application"
   }
