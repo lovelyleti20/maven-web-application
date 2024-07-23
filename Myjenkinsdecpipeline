@@ -30,20 +30,37 @@ pipeline{
   stage('7.deploy2prod'){
           //use deploy to container plugin
     deploy adapters: [tomcat9(credentialsId: 'tomcatuser2', path: '', url: 'http://172.31.23.206:8088/')], contextPath: null, war: 'target/*war'
- 
   }
-    stage('8.apm'){
-    sh "echo 'monitoring and observation and alerting' "
-    sh "echo 'application performance Monitoring in progress' "
-  }
-  stage('9.notification'){
-    sh "echo create email notification to resolve any issue that may arise"
-    //use pipeline syntax and email notification plugin to achieve this  
-    emailext body: '''The build and Deployment status for tesla-webapp
-lovelyleti collections
-678384181
-best regards
+    
+    post{
+      always{
+emailext body: '''Hi Team,
 
-''', recipientProviders: [developers(), buildUser(), contributor()], subject: 'The build suceeded', to: 'leticiaengwari@gmail.com'
-}
+Build status.
+
+Landmark Technologies.
+Tel: +1 437 215 2483
+''', recipientProviders: [buildUser(), developers(), contributor()], subject: 'Build status', to: 'mylandmarktech@gmail.com'
+      }
+      success{
+         emailext body: '''Hi Team,
+
+Build succeeded.
+
+Landmark Technologies.
+Tel: +1 437 215 2483
+''', recipientProviders: [buildUser(), developers(), contributor()], subject: 'Build status', to: 'mylandmarktech@gmail.com'
+      }
+      failure{
+         emailext body: '''Hi Team,
+
+Build failed.
+
+Landmark Technologies.
+Tel: +1 437 215 2483
+''', recipientProviders: [buildUser(), developers(), contributor()], subject: 'Build status', to: 'mylandmarktech@gmail.com'
+
+      }
+   } 
+
 }
