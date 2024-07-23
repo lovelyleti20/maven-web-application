@@ -1,71 +1,96 @@
-pipeline{
-   agent any  
-   //options{}
-   //triggers{}
-   tools {
-      maven 'maven3.9.6'
-   }
-   stages{
-  stage('1.clonecode'){
-    git "https://github.com/lovelyleti20/maven-web-application"
-  }
-  stage('2.mavenBuild'){
-    sh "${mavenHome}/bin/mvn package"
-  }
-  
-  stage('3.codeQualityAnalysis'){
-    sh "${mavenHome}/bin/mvn sonar:sonar"    
-  }
- 
-  stage('4.uploadArtifacts'){
-    sh "${mavenHome}/bin/mvn deploy"
-  }
-  stage('5.deploy2UAT'){
-      deploy adapters: [tomcat9(credentialsId: 'tomcatuser2', path: '', url: 'http://172.31.23.206:8088/')], contextPath: null, war: 'target/*war'
-  }
-  stage('6.ManualApproval'){
-    sh " echo 'Please review & approve' "
-    timeout(time:300, unit:'MINUTES')
-    {
-      input message: 'Application ready for deployment, Please review and approve'
-    }
-  }
-  stage('7.deploy2prod'){
-          //use deploy to container plugin
-    deploy adapters: [tomcat9(credentialsId: 'tomcatuser2', path: '', url: 'http://172.31.23.206:8088/')], contextPath: null, war: 'target/*war'
-  }
+pipeline {
+    agent any
     
-    post{
-      always{
-emailext body: '''Hi Team,
+    environment {
+        // Define Maven home path
+        def mavenHome = tool name: 'maven3.9.6', type: 'maven'
+    }
+    
+    stages {
+        stage('Clone Code') {
+            steps {
+                // Clone the repository
+                git "https://github.com/lovelyleti20/maven-web-application"
+            }
+        }
+        
+        stage('Build with Maven') {
+            steps {
+                // Build the Maven project
+                sh "${mavenHome}/bin/mvn package"
+            }
+        }
+        
+        stage('Code Quality Analysis') {
+            steps {
+                // Run SonarQube analysis
+                sh "${mavenHome}/bin/mvn sonar:sonar"
+            }
+        }
+        
+        stage('Upload Artifacts') {
+            steps {
+                // Deploy artifacts (replace 'deploy' with your actual deployment step)
+                sh "${mavenHome}/bin/mvn deploy"
+            }
+        }
+        
+        stage('Deploy to UAT') {
+            steps {
+                // Deploy to UAT environment (adjust as per your deployment method)
+                deploy adapters: [tomcat9(credentialsId: 'tomcatuser2', path: '', url: 'http://172.31.23.206:8088/')], contextPath: '', war: '**/*.war'
+            }
+        }
+        
+        stage('Manual Approval') {
+            steps {
+                // Wait for manual approval
+                timeout(time: 300, unit: 'MINUTES') {
+                    input message: 'Application ready for deployment. Please review and approve.'
+                }
+            }
+        }
+        
+        stage('Deploy to Production') {
+            steps {
+                // Deploy to production environment (adjust as per your deployment method)
+                deploy adapters: [tomcat9(credentialsId: 'tomcatuser2', path: '', url: 'http://172.31.23.206:8088/')], contextPath: '', war: '**/*.war'
+            }
+        }
+    }
+    
+    post {
+        always {
+            // Send email notification on build completion
+            emailext body: '''Hi Team,
 
 Build status.
 
 Landmark Technologies.
 Tel: +1 437 215 2483
 ''', recipientProviders: [buildUser(), developers(), contributor()], subject: 'Build status', to: 'mylandmarktech@gmail.com'
-      }
-      success{
-         emailext body: '''Hi Team,
+        }
+        
+        success {
+            // Send success email notification
+            emailext body: '''Hi Team,
 
 Build succeeded.
 
 Landmark Technologies.
 Tel: +1 437 215 2483
-''', recipientProviders: [buildUser(), developers(), contributor()], subject: 'Build status', to: 'mylandmarktech@gmail.com'
-      }
-      failure{
-         emailext body: '''Hi Team,
+''', recipientProviders: [buildUser(), developers(), contributor()], subject: 'Build succeeded', to: 'mylandmarktech@gmail.com'
+        }
+        
+        failure {
+            // Send failure email notification
+            emailext body: '''Hi Team,
 
 Build failed.
 
 Landmark Technologies.
 Tel: +1 437 215 2483
-''', recipientProviders: [buildUser(), developers(), contributor()], subject: 'Build status', to: 'mylandmarktech@gmail.com'
-
-      }
-   } 
-
-}
-
+''', recipientProviders: [buildUser(), developers(), contributor()], subject: 'Build failed', to: 'mylandmarktech@gmail.com'
+        }
+    }
 }
