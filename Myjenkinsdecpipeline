@@ -1,8 +1,11 @@
 pipeline{
-  agent any  
+   agent any  
+   //options{}
+   //triggers{}
    tools {
-      maven 'maven3.9.7'
-   }    
+      maven 'maven3.9.6'
+   }
+   stages{
   stage('1.clonecode'){
     git "https://github.com/lovelyleti20/maven-web-application"
   }
@@ -62,5 +65,7 @@ Tel: +1 437 215 2483
 
       }
    } 
+
+}
 
 }
